@@ -22,80 +22,86 @@
  * The encoders are monitored in the background using interrupts, so your code
  * can perform other tasks without missing encoder counts.
  */
-class Romi32U4Motor
-{
+class Romi32U4Motor {
 protected:
-   // Used to control the motors in different ways
-   enum CTRL_MODE : uint8_t {CTRL_DIRECT, CTRL_SPEED, CTRL_POS};
-   volatile CTRL_MODE ctrlMode = CTRL_DIRECT;
+  // Used to control the motors in different ways
+  enum CTRL_MODE : uint8_t { CTRL_DIRECT,
+                             CTRL_SPEED,
+                             CTRL_POS,
+                             CTRL_PIDPOS };
+  volatile CTRL_MODE ctrlMode = CTRL_DIRECT;
 
-   // this is the 'speed' of the motor, in "encoder counts / 16 ms interval"
-   volatile int16_t speed = 0;
+  // this is the 'speed' of the motor, in "encoder counts / 16 ms interval"
+  volatile int16_t speed = 0;
 
-   // used to set target speed or position (or both)
-   float targetSpeed = 0;
-   long targetPos = 0;
-   long targetCount = 0;
+  // used to set target speed or position (or both)
+  float targetSpeed = 0;
+  long targetPos = 0;
+  long targetCount = 0;
 
-   // Maximum effort (to protect the gear boxes). Can be changed by setting turbo mode
-   int16_t maxEffort = 300;
+  // Maximum effort for turning
+  int16_t maxTurnEffort = 100;
+  int16_t minEffort = 15;
 
-   // keeps track of encoder changes
-   volatile long prevCount = 0;
-   volatile long count = 0;
-   volatile long lastA = 0;
-   volatile long lastB = 0;
+  // Maximum effort (to protect the gear boxes). Can be changed by setting turbo mode
+  int16_t maxEffort = 300;
 
-   // We build a PID controller into the object for controlling speed
+  // keeps track of encoder changes
+  volatile long prevCount = 0;
+  volatile long count = 0;
+  volatile long lastA = 0;
+  volatile long lastB = 0;
+
+  // We build a PID controller into the object for controlling speed
   PIDController pidSpeedCtrl;
-
   // We build a PID controller into the object for controlling position
   PIDController pidPosCtrl;
 
-   friend class Chassis;
+  friend class Chassis;
 
 public:
-   Romi32U4Motor(void) : pidSpeedCtrl(5, 0.5) {} // These values work well for motor control
+  Romi32U4Motor(void)
+    : pidSpeedCtrl(5, 0.5), pidPosCtrl(1, 0, 0.1) {}  // These values work well for motor control
 
-   /**
+  /**
     * Must be called near the beginning of the program [usually in Chassis::init()]
     * */
-   static void init()
-   {
-      initMotors();
-      initEncoders();
-   }
+  static void init() {
+    initMotors();
+    initEncoders();
+  }
 
-   void setPIDCoeffients(float kp, float ki)
-   {
-      pidCtrl.setKp(kp);
-      pidCtrl.setKi(ki);
-   }
+  void setSpeedPIDCoeffients(float kp, float ki) {
+    pidSpeedCtrl.setKp(kp);
+    pidSpeedCtrl.setKi(ki);
+  }
 
 protected:
-   // Used to set up motors and encoders. Do not call directly; they are called from init(), which 
-   // is called from Chassis::init()
-   static void initMotors();
-   static void initEncoders();
+  // Used to set up motors and encoders. Do not call directly; they are called from init(), which
+  // is called from Chassis::init()
+  static void initMotors();
+  static void initEncoders();
 
-   /** \brief Sets the effort for the motor directly. Overloaded for the left and right motors.
+  /** \brief Sets the effort for the motor directly. Overloaded for the left and right motors.
    * Use Chassis::setEfforts() from the user code to control motor efforts directly.
    *
    * \param effort A number from -300 to 300 representing the effort and
    * direction of the left motor. Values of -300 or less result in full effort
    * reverse, and values of 300 or more result in full effort forward. */
-   virtual void setEffort(int16_t effort) = 0;
+  virtual void setEffort(int16_t effort) = 0;
 
-   void setTargetSpeed(float targetSpeed);
-   void setTargetCount(int target);
-   void moveFor(long amount);
-   bool checkComplete(void) {return ctrlMode == CTRL_DIRECT;}
+  void setTargetSpeed(float targetSpeed);
+  void setTargetCount(int target);
+  void moveFor(long amount);
+  bool checkComplete(void) {
+    return ctrlMode == CTRL_DIRECT;
+  }
 
-   void update(void);
-   void calcEncoderDelta(void);
+  void update(void);
+  void calcEncoderDelta(void);
 
 public:
-   /*! Returns the number of counts that have been detected from the
+  /*! Returns the number of counts that have been detected from the
    * encoder. These counts start at 0. Positive counts correspond to forward
    * movement of the left side of the Romi, while negative counts correspond
    * to backwards movement.
@@ -103,8 +109,8 @@ public:
    * The count is returned as a signed 16-bit integer. When the count goes
    * over 32767, it will overflow down to -32768.  When the count goes below
    * -32768, it will underflow up to 32767. */
-   long getCount(void);
-   long getAndResetCount(void);
+  long getCount(void);
+  long getAndResetCount(void);
 
   /** \brief Turns turbo mode on or off.
      *
@@ -119,12 +125,12 @@ public:
      *
      * \param turbo If true, turns turbo mode on.
      *   If false, turns turbo mode off. */
-   void allowTurbo(bool turbo);
+  void allowTurbo(bool turbo);
 
-   /** 
+  /** 
     * Service function for the ISR
     * */
-   inline void handleISR(bool newA, bool newB);
+  inline void handleISR(bool newA, bool newB);
 };
 
 /**
@@ -132,18 +138,16 @@ public:
  * 
  * A derived class for the left motor.
  * */
-class LeftMotor : public Romi32U4Motor
-{
+class LeftMotor : public Romi32U4Motor {
 protected:
-   void setEffort(int16_t effort);
+  void setEffort(int16_t effort);
 
-public: 
-   /** Used to set the motor effort directly. It will properly control the mode. */
-   void setMotorEffort(int16_t effort)
-   {
-      ctrlMode = CTRL_DIRECT;
-      setEffort(effort);
-   }
+public:
+  /** Used to set the motor effort directly. It will properly control the mode. */
+  void setMotorEffort(int16_t effort) {
+    ctrlMode = CTRL_DIRECT;
+    setEffort(effort);
+  }
 };
 
 /**
@@ -151,16 +155,14 @@ public:
  * 
  * A derived class for the right motor.
  * */
-class RightMotor : public Romi32U4Motor
-{
+class RightMotor : public Romi32U4Motor {
 protected:
-   void setEffort(int16_t effort);
+  void setEffort(int16_t effort);
 
 public:
-   /** Used to set the motor effort directly. It will properly control the mode. */
-   void setMotorEffort(int16_t effort)
-   {
-      ctrlMode = CTRL_DIRECT;
-      setEffort(effort);
-   }
+  /** Used to set the motor effort directly. It will properly control the mode. */
+  void setMotorEffort(int16_t effort) {
+    ctrlMode = CTRL_DIRECT;
+    setEffort(effort);
+  }
 };

@@ -82,15 +82,20 @@ void right(float seconds) {
   chassis.turnWithTimePosPid(NIGHTY_RIGHT_TURN_COUNT, seconds);
 }
 
-/*
- * The main loop for the program. The loop function is repeatedly called
- * after setup() is complete.
- */
+void drivePath(char movesList[], float targetTime) {
+  /*
+  for (char move: movesList) {
+    delay(1);
+  }
+  */
+  for (int i = 0; i < sizeof(movesList); i++) delay(1);
+}
+
 float targetTime = 49.5;
 float numTurns = 9;
 float legs = 22;
-// time per turn around 1.9, but would rather be over than under
-float legTime = (targetTime - numTurns * 1.1) / legs;
+float legTime = (targetTime - numTurns * 1.15) / legs;  // time per turn is around 1.15 s
+
 void loop() {
   unsigned long startTime, endTime;
   if (buttonA.getSingleDebouncedPress()) {
@@ -98,6 +103,27 @@ void loop() {
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
+    float targetTime = 49.5;
+    float turnTime = 1.15;
+    char moves[100] = "S L F100 R F130 B130 R F150 L F L F30 B30 R F80 B80 L F100 R F R E";
+
+    int count = 1;
+    for (int i = 0; i < strlen(moves); i++)
+      if (isSpace(moves[i])) count++;
+
+    char *movesList[count];
+    char *ptr = NULL;
+
+    byte index = 0;
+    ptr = strtok(moves, " ");
+    while (ptr != NULL) {
+      movesList[index] = ptr;
+      index++;
+      ptr = strtok(NULL, " ");
+    }
+
+    drivePath(*movesList, targetTime);
+
     chassis.driveWithTime(35, legTime);
     left(1);
     chassis.driveWithTime(100, 2 * legTime);

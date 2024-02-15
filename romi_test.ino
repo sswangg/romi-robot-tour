@@ -86,9 +86,9 @@ void right(float seconds) {
 // Set target time to the target time minus 1
 // Manually count the number of turns and legs
 // That's it
-float targetTime = 49.5;
-float numTurns = 9;
-float legs = 22;
+float targetTime = 63.5;
+float numTurns = 11;
+float legs = 24;
 float legTime = (targetTime - numTurns * 1.1) / legs;
 void loop() {
   unsigned long startTime, endTime;
@@ -97,28 +97,40 @@ void loop() {
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    chassis.driveWithTime(36.5, legTime);
-    left(1);
-    chassis.driveWithTime(100, 2 * legTime);
-    right(1);
-    chassis.driveWithTime(130, 3 * legTime);
-    chassis.driveWithTime(-130, 3 * legTime);
-    right(1);
-    chassis.driveWithTime(150, 3 * legTime);
-    left(1);
-    chassis.driveWithTime(50, legTime);
-    left(1);
+    //chassis.driveWithTime(36.5, legTime);
+    //left(1);
+    //chassis.driveWithTime(100, 2 * legTime);
+    //right(1);
+
     chassis.driveWithTime(30, legTime);
-    chassis.driveWithTime(-30, legTime);
-    right(1);
-    chassis.driveWithTime(80, 2 * legTime);
-    chassis.driveWithTime(-30, legTime);
-    left(1);
-    chassis.driveWithTime(100, 2 * legTime);
+    chassis.driveWithTime(150, 3 * legTime);
     right(1);
     chassis.driveWithTime(50, legTime);
     right(1);
-    chassis.driveWithTime(38.5, legTime);
+    chassis.driveWithTime(100, 2 * legTime);
+    chassis.driveWithTime(50, legTime);
+    chassis.driveWithTime(-50, legTime);
+    chassis.driveWithTime(-100, 2 * legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
+    left(1);
+    chassis.driveWithTime(50, legTime);
+    right(1);
+    chassis.driveWithTime(100, 2 * legTime);  //c target
+    chassis.driveWithTime(-100, 2 * legTime);
+    left(1);
+    chassis.driveWithTime(50, legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
+    left(1);
+    chassis.driveWithTime(50, legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
+    chassis.driveWithTime(-50, legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
+    left(1);
+    chassis.driveWithTime(37, legTime);
 
     robotState = ROBOT_IDLE;
   }

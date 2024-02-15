@@ -86,14 +86,18 @@ void right(float seconds) {
 // Set target time to the target time minus 1
 // Manually count the number of turns and legs
 // That's it
-float targetTime = 63.5;
+float targetTime = 65;
 float numTurns = 11;
 float legs = 24;
-float legTime = (targetTime - numTurns * 1.1) / legs;
+float legTime = ((targetTime - 1.5) - numTurns * 1.1) / legs;
+
+//for final dist timing
+unsigned long startTime;
 void loop() {
-  unsigned long startTime, endTime;
+  unsigned long endTime;
   if (buttonA.getSingleDebouncedPress()) {
     delay(500);
+    startTime = millis();
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
@@ -130,7 +134,9 @@ void loop() {
     right(1);
     chassis.driveWithTime(50, legTime);
     left(1);
-    chassis.driveWithTime(37, legTime);
+
+    //keep for final drive leg, change dist only
+    chassis.driveWithTime(37, (startTime + targetTime * 1000 - millis()) / 1000);
 
     robotState = ROBOT_IDLE;
   }

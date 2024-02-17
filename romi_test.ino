@@ -86,9 +86,9 @@ void right(float seconds) {
 // Set target time to the target time minus 1
 // Manually count the number of turns and legs
 // That's it
-float targetTime = 65;
-float numTurns = 11;
-float legs = 24;
+float targetTime = 45;
+float numTurns = 6;
+float legs = 17;
 float legTime = ((targetTime - 1.5) - numTurns * 1.1) / legs;
 
 //for final dist timing
@@ -101,42 +101,30 @@ void loop() {
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    //chassis.driveWithTime(36.5, legTime);
+    //chassis.driveWithTime(dist, legTime);
     //left(1);
-    //chassis.driveWithTime(100, 2 * legTime);
     //right(1);
 
-    chassis.driveWithTime(30, legTime);
-    chassis.driveWithTime(150, 3 * legTime);
-    right(1);
-    chassis.driveWithTime(50, legTime);
-    right(1);
+    chassis.driveWithTime(100, 2 * legTime);
+    chassis.driveWithTime(75, 2 * legTime);
+    chassis.driveWithTime(-45, legTime);
+    left(1);
     chassis.driveWithTime(100, 2 * legTime);
     chassis.driveWithTime(50, legTime);
-    chassis.driveWithTime(-50, legTime);
-    chassis.driveWithTime(-100, 2 * legTime);
-    right(1);
-    chassis.driveWithTime(50, legTime);
-    left(1);
-    chassis.driveWithTime(50, legTime);
-    right(1);
-    chassis.driveWithTime(100, 2 * legTime);  //c target
-    chassis.driveWithTime(-100, 2 * legTime);
-    left(1);
-    chassis.driveWithTime(50, legTime);
-    right(1);
-    chassis.driveWithTime(50, legTime);
-    left(1);
-    chassis.driveWithTime(50, legTime);
     right(1);
     chassis.driveWithTime(50, legTime);
     chassis.driveWithTime(-50, legTime);
     right(1);
     chassis.driveWithTime(50, legTime);
-    left(1);
-
+    right(1);
+    chassis.driveWithTime(100, 2* legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
+    chassis.driveWithTime(-50, legTime);
+    right(1);
+    chassis.driveWithTime(50, legTime);
     //keep for final drive leg, change dist only
-    chassis.driveWithTime(37, (startTime + targetTime * 1000 - millis()) / 1000);
+    chassis.driveWithTime(39, (startTime + targetTime * 1000 - millis()) / 1000);
 
     robotState = ROBOT_IDLE;
   }

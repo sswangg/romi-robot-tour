@@ -12,8 +12,8 @@
 
 #define I2C_ADDRESS 0x3C
 
-#define NIGHTY_LEFT_TURN_COUNT -719
-#define NIGHTY_RIGHT_TURN_COUNT 719
+#define NIGHTY_LEFT_TURN_COUNT -722
+#define NIGHTY_RIGHT_TURN_COUNT 722
 
 SSD1306AsciiAvrI2c oled;
 
@@ -62,6 +62,7 @@ void setup() {
   oled.clear();
   oled.print("Hello world!");
   delay(1000);
+  oled.clear();
 }
 
 void turnLeft() {
@@ -75,7 +76,16 @@ void turnRight() {
 }
 
 void left(float seconds) {
+  //long oldCount = chassis.leftMotor.getCount();
   chassis.turnWithTimePosPid(NIGHTY_LEFT_TURN_COUNT, seconds);
+  //long newCount = chassis.leftMotor.getCount();
+
+  oled.println(String(chassis.rightMotor.getCount()) + " - " + String(chassis.leftMotor.getCount()));
+  
+  
+  // oled.setRow(0);
+  // oled.clearToEOL();
+  // oled.println();
 }
 
 void right(float seconds) {
@@ -86,10 +96,11 @@ void right(float seconds) {
 // Set target time to the target time minus 1
 // Manually count the number of turns and legs
 // That's it
-float targetTime = 45;
-float numTurns = 6;
-float legs = 17;
-float legTime = ((targetTime - 1.5) - numTurns * 1.1) / legs;
+float targetTime = 55;
+float numTurns = 13;
+float legs = 28;
+float legTime = ((targetTime - 1.5) - numTurns * 0.9) / legs;
+float t = 0.8;
 
 //for final dist timing
 unsigned long startTime;
@@ -101,39 +112,65 @@ void loop() {
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    //chassis.driveWithTime(dist, legTime);
-    //left(1);
-    //right(1);
+    chassis.driveWithTime(25+8.5, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    chassis.driveWithTime(-50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(100, legTime*2);
 
-    chassis.driveWithTime(100, 2 * legTime);
-    chassis.driveWithTime(75, 2 * legTime);
-    chassis.driveWithTime(-45, legTime);
-    left(1);
-    chassis.driveWithTime(100, 2 * legTime);
+    right(.8);
     chassis.driveWithTime(50, legTime);
-    right(1);
+    left(.8);
     chassis.driveWithTime(50, legTime);
-    chassis.driveWithTime(-50, legTime);
-    right(1);
+    right(.8);
     chassis.driveWithTime(50, legTime);
-    right(1);
-    chassis.driveWithTime(100, 2* legTime);
-    right(1);
+    right(.8);
     chassis.driveWithTime(50, legTime);
-    chassis.driveWithTime(-50, legTime);
-    right(1);
+    left(.8);
     chassis.driveWithTime(50, legTime);
-    //keep for final drive leg, change dist only
-    chassis.driveWithTime(39, (startTime + targetTime * 1000 - millis()) / 1000);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(150, legTime*2);
+    chassis.driveWithTime(-5/0, legTime);
+    left(.8);
+    chassis.driveWithTime(50, legTime);
+    right(.8);
+    chassis.driveWithTime(50, legTime);
+    left(.8);
+    chassis.driveWithTime(50-8.5, legTime);
 
     robotState = ROBOT_IDLE;
   }
 
-  oled.setRow(0);
-  //oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
-  oled.clearToEOL();
-  oled.println();
-  oled.setRow(1);
-  oled.clearToEOL();
-  oled.println();
+  // oled.setRow(0);
+  // oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
+  // oled.clearToEOL();
+  // oled.println();
+  // oled.setRow(1);
+  // oled.clearToEOL();
+  // oled.println();
 }

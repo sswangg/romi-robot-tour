@@ -12,8 +12,17 @@
 
 #define I2C_ADDRESS 0x3C
 
-#define NIGHTY_LEFT_TURN_COUNT -719
-#define NIGHTY_RIGHT_TURN_COUNT 719
+#define NIGHTY_LEFT_TURN_COUNT -709
+#define NIGHTY_RIGHT_TURN_COUNT 708
+
+
+
+char moves[200] = "L L L L L L L L L L L L L L L L";
+double targetTime = 65;
+double endDist = 41;
+double startDist = -16;
+
+
 
 SSD1306AsciiAvrI2c oled;
 
@@ -82,17 +91,6 @@ void right(float seconds) {
   chassis.turnWithTimePosPid(NIGHTY_RIGHT_TURN_COUNT, seconds);
 }
 
-/*
-void drivePath(char movesList[], float targetTime, int numMoves) {
-  
-}
-*/
-
-float targetTime = 49.5;
-float numTurns = 9;
-float legs = 22;
-float legTime = (targetTime - numTurns * 1.15) / legs;  // time per turn is around 1.15 s
-
 void loop() {
   unsigned long startTime, endTime;
   if (buttonA.getSingleDebouncedPress()) {
@@ -100,9 +98,6 @@ void loop() {
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    left(0.6);
-    char moves[100] = "S L F100 R F130 B130 R F150 L F L F30 B30 R F80 B80 L F100 R F R E";
-
     int count = 1;
     for (int i = 0; i < strlen(moves); i++)
       if (isSpace(moves[i])) count++;
@@ -119,7 +114,7 @@ void loop() {
     }
 
     int numTurns = 0;
-    double totalDist = 16+41;
+    double totalDist = 0;
     char currentChar;
     int currentLen;
     String st;
@@ -136,12 +131,16 @@ void loop() {
         } else {
           totalDist += 50;
         }
+      } else if (currentChar == 'S') {
+        totalDist += abs(startDist);
+      } else if (currentChar == 'E') {
+        totalDist += abs(endDist);
       }
     }
 
-    double turnTime = 0.6;
-    double totalTurnTime = 0.7 * numTurns;
-    double totalDriveTime = targetTime - totalTurnTime - 1;
+    double turnTime = 0.55;
+    double totalTurnTime = 0.65 * numTurns;
+    double totalDriveTime = targetTime - totalTurnTime;
     double dist;
 
     for (int i = 0; i < count; i++) {
@@ -162,12 +161,12 @@ void loop() {
         if (currentChar == 'F') {
           chassis.driveWithTime(dist, dist/totalDist * totalDriveTime);
         } else {
-          chassis.driveWithTime(0-dist, 0-dist/totalDist * totalDriveTime);
+          chassis.driveWithTime(0-dist, dist/totalDist * totalDriveTime);
         } 
       } else if (currentChar == 'S') {
-        chassis.driveWithTime(16, 16/totalDist * totalDriveTime);
+        chassis.driveWithTime(startDist, abs(startDist)/totalDist * totalDriveTime);
       } else if (currentChar == 'E') {
-        chassis.driveWithTime(41, 41/totalDist * totalDriveTime);
+        chassis.driveWithTime(endDist, abs(endDist)/totalDist * totalDriveTime);
       }
     }
     robotState = ROBOT_IDLE;
@@ -177,7 +176,6 @@ void loop() {
   //oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
   oled.clearToEOL();
   oled.println();
-  oled.setRow(1);
   oled.clearToEOL();
   oled.println();
 }

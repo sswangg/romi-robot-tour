@@ -82,14 +82,11 @@ void right(float seconds) {
   chassis.turnWithTimePosPid(NIGHTY_RIGHT_TURN_COUNT, seconds);
 }
 
-void drivePath(char movesList[], float targetTime) {
-  /*
-  for (char move: movesList) {
-    delay(1);
-  }
-  */
-  for (int i = 0; i < sizeof(movesList); i++) delay(1);
+/*
+void drivePath(char movesList[], float targetTime, int numMoves) {
+  
 }
+*/
 
 float targetTime = 49.5;
 float numTurns = 9;
@@ -99,18 +96,17 @@ float legTime = (targetTime - numTurns * 1.15) / legs;  // time per turn is arou
 void loop() {
   unsigned long startTime, endTime;
   if (buttonA.getSingleDebouncedPress()) {
-    delay(500);
+    delay(300);
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    float targetTime = 49.5;
-    float turnTime = 1.15;
+    left(0.6);
     char moves[100] = "S L F100 R F130 B130 R F150 L F L F30 B30 R F80 B80 L F100 R F R E";
 
     int count = 1;
     for (int i = 0; i < strlen(moves); i++)
       if (isSpace(moves[i])) count++;
-
+      
     char *movesList[count];
     char *ptr = NULL;
 
@@ -122,31 +118,58 @@ void loop() {
       ptr = strtok(NULL, " ");
     }
 
-    drivePath(*movesList, targetTime);
+    int numTurns = 0;
+    double totalDist = 16+41;
+    char currentChar;
+    int currentLen;
+    String st;
 
-    chassis.driveWithTime(35, legTime);
-    left(1);
-    chassis.driveWithTime(100, 2 * legTime);
-    right(1);
-    chassis.driveWithTime(130, 3 * legTime);
-    chassis.driveWithTime(-130, 3 * legTime);
-    right(1);
-    chassis.driveWithTime(150, 3 * legTime);
-    left(1);
-    chassis.driveWithTime(50, legTime);
-    left(1);
-    chassis.driveWithTime(30, legTime);
-    chassis.driveWithTime(-30, legTime);
-    right(1);
-    chassis.driveWithTime(80, 2 * legTime);
-    chassis.driveWithTime(-30, legTime);
-    left(1);
-    chassis.driveWithTime(100, 2 * legTime);
-    right(1);
-    chassis.driveWithTime(50, legTime);
-    right(1);
-    chassis.driveWithTime(30, legTime);
+    for (int i = 0; i < count; i++) {
+      currentChar = *movesList[i];
+      st = movesList[i];
+      if (currentChar == 'R' || currentChar == 'L') {
+        numTurns++;
+      }
+      else if (currentChar == 'F' || currentChar == 'B') {   
+        if (st.length() > 1) {
+          totalDist += st.substring(1).toDouble();
+        } else {
+          totalDist += 50;
+        }
+      }
+    }
 
+    double turnTime = 0.6;
+    double totalTurnTime = 0.7 * numTurns;
+    double totalDriveTime = targetTime - totalTurnTime - 1;
+    double dist;
+
+    for (int i = 0; i < count; i++) {
+      currentChar = *movesList[i];
+      st = movesList[i];
+
+      if (currentChar == 'R') {
+        right(turnTime);
+      } else if (currentChar == 'L') {
+        left(turnTime);
+      }
+      else if (currentChar == 'F' || currentChar == 'B') {      
+        if (st.length() > 1) {
+          dist = st.substring(1).toDouble();
+        } else {
+          dist = 50;
+        }
+        if (currentChar == 'F') {
+          chassis.driveWithTime(dist, dist/totalDist * totalDriveTime);
+        } else {
+          chassis.driveWithTime(0-dist, 0-dist/totalDist * totalDriveTime);
+        } 
+      } else if (currentChar == 'S') {
+        chassis.driveWithTime(16, 16/totalDist * totalDriveTime);
+      } else if (currentChar == 'E') {
+        chassis.driveWithTime(41, 41/totalDist * totalDriveTime);
+      }
+    }
     robotState = ROBOT_IDLE;
   }
 

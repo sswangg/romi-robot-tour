@@ -111,7 +111,7 @@ void Chassis::driveFor(float forwardDistance, float forwardSpeed, bool block) {
 
 void Chassis::driveWithTime(float forwardDistance, float targetSeconds) {
   unsigned long startTime = millis();
-  float targetSeconds2 = targetSeconds * 0.9;
+  float targetSeconds2 = targetSeconds - 0.02;
   float forwardSpeed = calculateSpeed(forwardDistance, targetSeconds2, 0);
   setTwist(forwardSpeed, 0);
   // calculate the total motion in encoder ticks
@@ -129,7 +129,7 @@ void Chassis::driveWithTime(float forwardDistance, float targetSeconds) {
     leftMotor.targetSpeed = ticksPerIntervalFwd;
     rightMotor.targetSpeed = ticksPerIntervalFwd;
   }
-  delay(int(targetSeconds * 0.1 * 1000));
+  delay(20);
 }
 
 void Chassis::turnFor(float turnAngle, float turningSpeed, bool block) {
@@ -157,13 +157,13 @@ void Chassis::turnWithTimePosPid(int targetCount, float targetSeconds) {
   while (true) {
     delay(1);
     float elapsedSeconds = (millis() - startTime) / 1000.0;
-    int thisTarget = calculateIntermediateTargetLinear(targetCount, targetSeconds - 0.2, elapsedSeconds);
+    int thisTarget = calculateIntermediateTargetLinear(targetCount, targetSeconds - 0.05, elapsedSeconds);
     leftMotor.targetCount = thisTarget;
     rightMotor.targetCount = -thisTarget;
     if (elapsedSeconds > targetSeconds)
       break;
   }
-  delay(200);
+  delay(50);
   setMotorEfforts(0, 0);
 }
 

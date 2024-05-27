@@ -71,6 +71,7 @@ void setup() {
   oled.clear();
   oled.print("Hello world!");
   delay(1000);
+  oled.clear();
 }
 
 void turnLeft() {
@@ -84,7 +85,16 @@ void turnRight() {
 }
 
 void left(float seconds) {
+  //long oldCount = chassis.leftMotor.getCount();
   chassis.turnWithTimePosPid(NIGHTY_LEFT_TURN_COUNT, seconds);
+  //long newCount = chassis.leftMotor.getCount();
+
+  oled.println(String(chassis.rightMotor.getCount()) + " - " + String(chassis.leftMotor.getCount()));
+  
+  
+  // oled.setRow(0);
+  // oled.clearToEOL();
+  // oled.println();
 }
 
 void right(float seconds) {
@@ -92,7 +102,7 @@ void right(float seconds) {
 }
 
 void loop() {
-  unsigned long startTime, endTime;
+  unsigned long endTime;
   if (buttonA.getSingleDebouncedPress()) {
     delay(300);
     robotState = ROBOT_MOVE;

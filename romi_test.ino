@@ -17,7 +17,7 @@
 
 
 
-char moves[200] = "L L L L L L L L L L L L L L L L";
+char moves[200] = "S L F100 R F B E";
 double targetTime = 65;
 double endDist = 41;
 double startDist = -16;
@@ -140,7 +140,7 @@ void loop() {
 
     double turnTime = 0.55;
     double totalTurnTime = 0.65 * numTurns;
-    double totalDriveTime = targetTime - totalTurnTime;
+    double totalDriveTime = targetTime - totalTurnTime - 0.004*totalDist;
     double dist;
 
     for (int i = 0; i < count; i++) {

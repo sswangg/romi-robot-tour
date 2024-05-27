@@ -1,53 +1,42 @@
-/**
- * Demonstration of controlling two servos simultanesouly. See documentation for servo.h/.cpp for
- * more details.
- * 
- * */
-
 #include <Arduino.h>
-#include <SSD1306Ascii.h>
-#include <SSD1306AsciiAvrI2c.h>
 #include "Chassis.h"
 #include "Romi32U4Buttons.h"
 
-#define I2C_ADDRESS 0x3C
 
+// encoder count targets, tune by turning 16 times and changing numbers untill offset is 0
 #define NIGHTY_LEFT_TURN_COUNT -709
 #define NIGHTY_RIGHT_TURN_COUNT 708
 
 
-
-char moves[200] = "S L F100 R F B E";
-double targetTime = 65;
+// F and B go forward/backwards 50 cm by default, but other distances can be easily specified by adding a number after the letter
+// S and E go the start/end distance
+// L and R are left and right
+// targetTime is target time (duh)
+char moves[200] = "B67 R F L F30 R R F60 B30 R F L F R F L F L F80 B80 L F L F L F30 B30 L F L F L F R F30 B30 R E";
+double targetTime = 75;
 double endDist = 41;
 double startDist = -16;
 
 
-
-SSD1306AsciiAvrI2c oled;
-
-// Declare a chassis object with nominal dimensions
-// In practice, adjust the parameters: wheel diam, encoder counts, wheel track
+// parameters are wheel diam, encoder counts, wheel track (tune these to your own hardware)
+// default values of 7, 1440, 14 can't go wrong
 Chassis chassis(6.994936972, 1440, 14.0081);
 Romi32U4ButtonA buttonA;
 
-// Define the states
+// define the states (I LOVE state machines) (I made the state machine for Jacob's flappy bird in desmos)
+// this state machine is not actually useful in any way
 enum ROBOT_STATE { ROBOT_IDLE,
                    ROBOT_MOVE,
                    MOVING };
 ROBOT_STATE robotState = ROBOT_IDLE;
 
-// A helper function to stop the motors
+
+// a helper function to stop the motors
 void idle(void) {
   Serial.println("idle()");
-
-  //stop motors
   chassis.idle();
-
-  //set state to idle
   robotState = ROBOT_IDLE;
 }
-
 
 /*
  * This is the standard setup function that is called when the board is rebooted
@@ -64,14 +53,9 @@ void setup() {
   idle();
 
   // these can be undone for the student to adjust
+  // tuned like shit, very good numbers to change
+  // it's actually a PI controller where first number is P and second is I
   chassis.setMotorPIDcoeffs(5, 0.5);
-
-  oled.begin(&Adafruit128x64, I2C_ADDRESS);
-  oled.setFont(System5x7);
-  oled.clear();
-  oled.print("Hello world!");
-  delay(1000);
-  oled.clear();
 }
 
 void turnLeft() {
@@ -85,36 +69,31 @@ void turnRight() {
 }
 
 void left(float seconds) {
-  //long oldCount = chassis.leftMotor.getCount();
   chassis.turnWithTimePosPid(NIGHTY_LEFT_TURN_COUNT, seconds);
-  //long newCount = chassis.leftMotor.getCount();
-
-  oled.println(String(chassis.rightMotor.getCount()) + " - " + String(chassis.leftMotor.getCount()));
-  
-  
-  // oled.setRow(0);
-  // oled.clearToEOL();
-  // oled.println();
 }
 
 void right(float seconds) {
   chassis.turnWithTimePosPid(NIGHTY_RIGHT_TURN_COUNT, seconds);
 }
 
+// I wrote most of this in a meditative state the night before states lol
 void loop() {
-  unsigned long endTime;
   if (buttonA.getSingleDebouncedPress()) {
-    delay(300);
+    delay(300); // wait a little before starting to move so it doesn't hit the pencil or smth idk
     robotState = ROBOT_MOVE;
   }
+
   if (robotState == ROBOT_MOVE) {
-    int count = 1;
+    int count = 1; // count the number of moves (turns and straights)
     for (int i = 0; i < strlen(moves); i++)
       if (isSpace(moves[i])) count++;
-      
+
+    // constucts *movesList, each element is pointer to the first character of a move string
+    // i.e. if moves is "S R F100 B L E" then *movesList[2] is a pointer to "F" and moveslist[2] is "F100"
     char *movesList[count];
     char *ptr = NULL;
 
+    // tokenize moves with space as delimiter, each token is one move
     byte index = 0;
     ptr = strtok(moves, " ");
     while (ptr != NULL) {
@@ -126,9 +105,10 @@ void loop() {
     int numTurns = 0;
     double totalDist = 0;
     char currentChar;
-    int currentLen;
     String st;
 
+    // count number of turns and total distance travelled
+    // instead of *movesList[i] I could've just done st[0]... but pointers are cool ig
     for (int i = 0; i < count; i++) {
       currentChar = *movesList[i];
       st = movesList[i];
@@ -148,11 +128,12 @@ void loop() {
       }
     }
 
-    double turnTime = 0.55;
-    double totalTurnTime = 0.65 * numTurns;
-    double totalDriveTime = targetTime - totalTurnTime - 0.004*totalDist;
+    double turnTime = 0.55; // target time for a turn is 0.55 seconds
+    double totalTurnTime = 0.65 * numTurns; // but the code doesn't work so the actual time for a turn is 0.65 seconds
+    double totalDriveTime = targetTime - totalTurnTime - 0.0029*totalDist; // this also always went over hence the 0.0029*totalDist
     double dist;
 
+    // execute the moves (this really should've been a switch case kind of thing)
     for (int i = 0; i < count; i++) {
       currentChar = *movesList[i];
       st = movesList[i];
@@ -179,13 +160,6 @@ void loop() {
         chassis.driveWithTime(endDist, abs(endDist)/totalDist * totalDriveTime);
       }
     }
-    robotState = ROBOT_IDLE;
+    idle(); // go back to idling after finish
   }
-
-  oled.setRow(0);
-  //oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
-  oled.clearToEOL();
-  oled.println();
-  oled.clearToEOL();
-  oled.println();
 }

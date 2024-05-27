@@ -8,13 +8,12 @@
 #define NIGHTY_RIGHT_TURN_COUNT 708
 
 
-
 // F and B go forward/backwards 50 cm by default, but other distances can be easily specified by adding a number after the letter
 // S and E go the start/end distance
 // L and R are left and right
 // targetTime is target time (duh)
-char moves[200] = "S L F100 R F L F30 B30 E";
-double targetTime = 65;
+char moves[200] = "B67 R F L F30 R R F60 B30 R F L F R F L F L F80 B80 L F L F L F30 B30 L F L F L F R F30 B30 R E";
+double targetTime = 75;
 double endDist = 41;
 double startDist = -16;
 
@@ -25,6 +24,7 @@ Chassis chassis(6.994936972, 1440, 14.0081);
 Romi32U4ButtonA buttonA;
 
 // define the states (I LOVE state machines) (I made the state machine for Jacob's flappy bird in desmos)
+// this state machine is not actually useful in any way
 enum ROBOT_STATE { ROBOT_IDLE,
                    ROBOT_MOVE,
                    MOVING };
@@ -130,7 +130,7 @@ void loop() {
 
     double turnTime = 0.55; // target time for a turn is 0.55 seconds
     double totalTurnTime = 0.65 * numTurns; // but the code doesn't work so the actual time for a turn is 0.65 seconds
-    double totalDriveTime = targetTime - totalTurnTime - 0.004*totalDist; // this also always went over hence the 0.004*totalDist
+    double totalDriveTime = targetTime - totalTurnTime - 0.0029*totalDist; // this also always went over hence the 0.0029*totalDist
     double dist;
 
     // execute the moves (this really should've been a switch case kind of thing)

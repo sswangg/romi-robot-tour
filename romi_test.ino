@@ -12,8 +12,17 @@
 
 #define I2C_ADDRESS 0x3C
 
-#define NIGHTY_LEFT_TURN_COUNT -722
-#define NIGHTY_RIGHT_TURN_COUNT 722
+#define NIGHTY_LEFT_TURN_COUNT -709
+#define NIGHTY_RIGHT_TURN_COUNT 708
+
+
+
+char moves[200] = "S L F100 R F B E";
+double targetTime = 65;
+double endDist = 41;
+double startDist = -16;
+
+
 
 SSD1306AsciiAvrI2c oled;
 
@@ -92,85 +101,91 @@ void right(float seconds) {
   chassis.turnWithTimePosPid(NIGHTY_RIGHT_TURN_COUNT, seconds);
 }
 
-// TO USE PROGRAM
-// Set target time to the target time minus 1
-// Manually count the number of turns and legs
-// That's it
-float targetTime = 55;
-float numTurns = 13;
-float legs = 28;
-float legTime = ((targetTime - 1.5) - numTurns * 0.9) / legs;
-float t = 0.8;
-
-//for final dist timing
-unsigned long startTime;
 void loop() {
   unsigned long endTime;
   if (buttonA.getSingleDebouncedPress()) {
-    delay(500);
-    startTime = millis();
+    delay(300);
     robotState = ROBOT_MOVE;
   }
   if (robotState == ROBOT_MOVE) {
-    chassis.driveWithTime(25+8.5, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    chassis.driveWithTime(-50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(100, legTime*2);
+    int count = 1;
+    for (int i = 0; i < strlen(moves); i++)
+      if (isSpace(moves[i])) count++;
+      
+    char *movesList[count];
+    char *ptr = NULL;
 
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(150, legTime*2);
-    chassis.driveWithTime(-5/0, legTime);
-    left(.8);
-    chassis.driveWithTime(50, legTime);
-    right(.8);
-    chassis.driveWithTime(50, legTime);
-    left(.8);
-    chassis.driveWithTime(50-8.5, legTime);
+    byte index = 0;
+    ptr = strtok(moves, " ");
+    while (ptr != NULL) {
+      movesList[index] = ptr;
+      index++;
+      ptr = strtok(NULL, " ");
+    }
 
+    int numTurns = 0;
+    double totalDist = 0;
+    char currentChar;
+    int currentLen;
+    String st;
+
+    for (int i = 0; i < count; i++) {
+      currentChar = *movesList[i];
+      st = movesList[i];
+      if (currentChar == 'R' || currentChar == 'L') {
+        numTurns++;
+      }
+      else if (currentChar == 'F' || currentChar == 'B') {   
+        if (st.length() > 1) {
+          totalDist += st.substring(1).toDouble();
+        } else {
+          totalDist += 50;
+        }
+      } else if (currentChar == 'S') {
+        totalDist += abs(startDist);
+      } else if (currentChar == 'E') {
+        totalDist += abs(endDist);
+      }
+    }
+
+    double turnTime = 0.55;
+    double totalTurnTime = 0.65 * numTurns;
+    double totalDriveTime = targetTime - totalTurnTime - 0.004*totalDist;
+    double dist;
+
+    for (int i = 0; i < count; i++) {
+      currentChar = *movesList[i];
+      st = movesList[i];
+
+      if (currentChar == 'R') {
+        right(turnTime);
+      } else if (currentChar == 'L') {
+        left(turnTime);
+      }
+      else if (currentChar == 'F' || currentChar == 'B') {      
+        if (st.length() > 1) {
+          dist = st.substring(1).toDouble();
+        } else {
+          dist = 50;
+        }
+        if (currentChar == 'F') {
+          chassis.driveWithTime(dist, dist/totalDist * totalDriveTime);
+        } else {
+          chassis.driveWithTime(0-dist, dist/totalDist * totalDriveTime);
+        } 
+      } else if (currentChar == 'S') {
+        chassis.driveWithTime(startDist, abs(startDist)/totalDist * totalDriveTime);
+      } else if (currentChar == 'E') {
+        chassis.driveWithTime(endDist, abs(endDist)/totalDist * totalDriveTime);
+      }
+    }
     robotState = ROBOT_IDLE;
   }
 
-  // oled.setRow(0);
-  // oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
-  // oled.clearToEOL();
-  // oled.println();
-  // oled.setRow(1);
-  // oled.clearToEOL();
-  // oled.println();
+  oled.setRow(0);
+  //oled.print(String(chassis.leftMotor.getCount()) + ", " + String(chassis.rightMotor.getCount()));
+  oled.clearToEOL();
+  oled.println();
+  oled.clearToEOL();
+  oled.println();
 }
